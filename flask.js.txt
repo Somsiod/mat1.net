@@ -1,0 +1,32 @@
+from flask import Flask, request, jsonify  
+from tronpy import Tron  
+import json  
+
+app = Flask(__name__)  
+client = Tron()  
+
+@app.route('/add_entry', methods=['POST'])  
+def add_entry():  
+    data = request.json  
+    address = data['address']  
+    entry = data['entry']  
+    # Handle adding entry to the smart contract  
+    # Call smart contract functions here  
+    return jsonify({"status": "success", "entry": entry})  
+
+@app.route('/stake', methods=['POST'])  
+def stake():  
+    data = request.json  
+    address = data['address']  
+    amount = data['amount']  
+    # Call smart contract stake function  
+    return jsonify({"status": "staked", "amount": amount})  
+
+@app.route('/wallet/connect', methods=['POST'])  
+def connect_wallet():  
+    address = request.json['address']  
+    # Handle wallet connection and response  
+    return jsonify({"status": "wallet connected", "address": address})  
+
+if __name__ == '__main__':  
+    app.run(debug=True)

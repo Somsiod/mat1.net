@@ -1,0 +1,96 @@
+const axios = require('axios');  
+
+class CloudMiningService {  
+    constructor(apiKey, apiSecret, baseUrl) {  
+        this.apiKey = apiKey;  
+        this.apiSecret = apiSecret;  
+        this.baseUrl = baseUrl;  
+    }  
+
+    // Method to authenticate and return headers  
+    getAuthHeaders() {  
+        return {  
+            'Authorization': `Bearer ${this.apiKey}`,  
+            'Content-Type': 'application/json'  
+        };  
+    }  
+
+    // Start a mining session  
+    async startMining(minerId) {  
+        try {  
+            const response = await axios.post(`${this.baseUrl}/miners/${minerId}/start`, {}, {  
+                headers: this.getAuthHeaders()  
+            });  
+            console.log('Mining started:', response.data);  
+            return response.data;  
+        } catch (error) {  
+            console.error('Error starting mining:', error.response ? error.response.data : error.message);  
+            throw error;  
+        }  
+    }  
+
+    // Stop a mining session  
+    async stopMining(minerId) {  
+        try {  
+            const response = await axios.post(`${this.baseUrl}/miners/${minerId}/stop`, {}, {  
+                headers: this.getAuthHeaders()  
+            });  
+            console.log('Mining stopped:', response.data);  
+            return response.data;  
+        } catch (error) {  
+            console.error('Error stopping mining:', error.response ? error.response.data : error.message);  
+            throw error;  
+        }  
+    }  
+
+    // Get status of a mining session  
+    async getMiningStatus(minerId) {  
+        try {  
+            const response = await axios.get(`${this.baseUrl}/miners/${minerId}/status`, {  
+                headers: this.getAuthHeaders()  
+            });  
+            console.log('Mining status:', response.data);  
+            return response.data;  
+        } catch (error) {  
+            console.error('Error getting mining status:', error.response ? error.response.data : error.message);  
+            throw error;  
+        }  
+    }  
+
+    // Retrieve mining statistics  
+    async getMiningStats(minerId) {  
+        try {  
+            const response = await axios.get(`${this.baseUrl}/miners/${minerId}/stats`, {  
+                headers: this.getAuthHeaders()  
+            });  
+            console.log('Mining statistics:', response.data);  
+            return response.data;  
+        } catch (error) {  
+            console.error('Error getting mining statistics:', error.response ? error.response.data : error.message);  
+            throw error;  
+        }  
+    }  
+}  
+
+// Example usage  
+(async () => {  
+    const miningService = new CloudMiningService('YOUR_API_KEY', 'YOUR_API_SECRET', 'https://api.cloudminingservice.com/v1');  
+
+    const minerId = 'YOUR_MINER_ID';  
+
+    try {  
+        // Start mining  
+        await miningService.startMining(minerId);  
+
+        // Check status  
+        await miningService.getMiningStatus(minerId);  
+
+        // Retrieve statistics  
+        await miningService.getMiningStats(minerId);  
+
+        // Stop mining  
+        await miningService.stopMining(minerId);  
+    } catch (error) {  
+        console.error('Error during mining operations:', error.message);  
+    }  
+})();

@@ -1,0 +1,132 @@
+const axios = require('axios');  
+const crypto = require('crypto');  
+
+async function placeOrder(exchange, symbol, side, quantity) {  
+    try {  
+        let response;  
+
+        // Place order on OKX  
+        if (exchange === 'okx') {  
+            const apiKey = 'YOUR_OKX_API_KEY';  
+            const secretKey = 'YOUR_OKX_SECRET_KEY';  
+            const passphrase = 'YOUR_OKX_PASSPHRASE';  
+            const endpoint = '/api/v5/trade/order';  
+            const timestamp = new Date().toISOString();  
+            
+            const body = {  
+                instId: symbol,  
+                tdMode: 'cash',  
+                side: side,  
+                ordType: 'market',  
+                sz: quantity  
+            };  
+
+            const signature = createOkxSignature(apiKey, secretKey, timestamp, JSON.stringify(body));  
+            response = await axios.post(`https://www.okx.com${endpoint}`, body, {  
+                headers: {  
+                    'OK-ACCESS-KEY': apiKey,  
+                    'OK-ACCESS-PASSPHRASE': passphrase,  
+                    'OK-ACCESS-SIGN': signature,  
+                    'OK-ACCESS-TIMESTAMP': timestamp,  
+                    'Content-Type': 'application/json'  
+                }  
+            });  
+            console.log('OKX Order Response:', response.data);  
+
+        // Place order on BingX  
+        } else if (exchange === 'bingx') {  
+            const apiKey = 'YOUR_BINGX_API_KEY';  
+            const secretKey = 'YOUR_BINGX_SECRET_KEY';  
+            const endpoint = 'https://api.bingx.com/v1/order/place';  
+            
+            const body = {  
+                symbol: symbol,  
+                price: 0,  // 0 for market order  
+                quantity: quantity,  
+                side: side,  
+                orderType: 'market'  
+            };  
+
+            const signature = createBingxSignature(apiKey, secretKey, body);  
+            response = await axios.post(endpoint, body, {  
+                headers: {  
+                    'X-BINGX-APIKEY': apiKey,  
+                    'X-BINGX-SIGNATURE': signature,  
+                    'Content-Type': 'application/json'  
+                }  
+            });  
+
+            console.log('BingX Order Response:', response.data);  
+
+        // Place order on MEXC  
+        } else if (exchange === 'mexc') {  
+            const apiKey = 'YOUR_MEXC_API_KEY';  
+            const secretKey = 'YOUR_MEXC_SECRET_KEY';  
+            const endpoint = '/api/v2/private/order/create';  
+            const timestamp = Date.now();  
+
+            const params = {  
+                symbol: symbol,  
+                price: 0,  // 0 for market order  
+                quantity: quantity,  
+                side: side,  
+                type: 'market',  
+                timestamp: timestamp  
+            };  
+
+            const signature = createMexcSignature(params, secretKey);  
+            const url = `https://www.mexc.com${endpoint}?${new URLSearchParams({...params, sign: signature}).toString()}`;  
+            
+            response = await axios.post(url, {}, {  
+                headers: {  
+                    'ApiKey': apiKey,  
+                    'Content-Type': 'application/x-www-form-urlencoded'  
+                }  
+            });  
+            
+            console.log('MEXC Order Response:', response.data);  
+        } else {  
+            throw new Error('Unsupported exchange');  
+        }  
+
+        return response.data;  
+    } catch (error) {  
+        console.error('Error placing order:', error.response ? error.response.data : error.message);  
+        throw error;  
+    }  
+}  
+
+// Helper functions to create signatures for each exchange  
+
+function createOkxSignature(apiKey, secretKey, timestamp, body) {  
+    const preHash = `${timestamp}${apiKey}${body}`;  
+    return crypto.createHmac('sha256', secretKey).update(preHash).digest('base64');  
+}  
+
+function createBingxSignature(apiKey, secretKey, body) {  
+    // Create a unique request string and HMAC signature  
+    const bodyString = JSON.stringify(body);  
+    return crypto.createHmac('sha256', secretKey).update(bodyString).digest('hex');  
+}  
+
+function createMexcSignature(params, secretKey) {  
+    // Create the signature for MEXC requests  
+    const queryString = new URLSearchParams(params).toString();  
+    return crypto.createHmac('sha256', secretKey).update(queryString).digest('hex');  
+}  
+
+// Usage Example  
+(async () => {  
+    try {  
+        const order1 = await placeOrder('okx', 'BTC-USDT', 'buy', 0.001);  
+        console.log('Order on OKX:', order1);  
+
+        const order2 = await placeOrder('bingx', 'BTCUSDT', 'buy', 0.01);  
+        console.log('Order on BingX:', order2);  
+
+        const order3 = await placeOrder('mexc', 'btcusdt', 'buy', 0.1);  
+        console.log('Order on MEXC:', order3);  
+    } catch (error) {  
+        console.error('Trading failed:', error);  
+    }  
+})();

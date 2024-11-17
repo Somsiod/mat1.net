@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: MIT  
+pragma solidity ^0.8.0;  
+
+// ERC20 interface  
+interface IERC20 {  
+    function transfer(address recipient, uint256 amount) external returns (bool);  
+}  
+
+// Rewards distribution contract  
+contract StepEarn {  
+    IERC20 public token; // Reference to the ERC20 token  
+    mapping(address => uint256) public rewards;  
+
+    event RewardDistributed(address indexed user, uint256 amount);  
+    event RewardClaimed(address indexed user, uint256 amount);  
+
+    constructor(address tokenAddress) {  
+        token = IERC20(tokenAddress); // Initialize the token contract  
+    }  
+
+    // Function to distribute rewards based on steps  
+    function distributeRewards(address user, uint256 steps) external {  
+        require(user != address(0), "Invalid address");  
+        
+        // Reward calculation logic  
+        uint256 rewardAmount = steps / 100; // Example: 1 token for every 100 steps  
+
+        require(rewardAmount > 0, "No rewards to distribute");  
+        
+        // Increase the rewards of the user  
+        rewards[user] += rewardAmount;  
+
+        emit RewardDistributed(user, rewardAmount);  
+    }  
+
+    // Function for users to claim their rewards  
+    function claimRewards() external {  
+        uint256 amount = rewards[msg.sender];  
+        require(amount > 0, "No rewards available to claim");  
+
+        // Transfer tokens from this contract to the user  
+        token.transfer(msg.sender, amount);  
+
+        // Reset user's rewards after claiming  
+        rewards[msg.sender] = 0;  
+
+        emit RewardClaimed(msg.sender, amount);  
+    }  
+
+    // Optional function to check the balance of rewards  
+    function getRewards(address user) external view returns (uint256) {  
+        return rewards[user];  
+    }  
+}

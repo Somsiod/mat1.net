@@ -1,0 +1,97 @@
+const express = require('express');  
+const bodyParser = require('body-parser');  
+
+const app = express();  
+app.use(bodyParser.json());  
+
+const PORT = process.env.PORT || 3000;  
+
+// In-memory data store for users and their stakes  
+const users = {};  
+
+// Staking parameters  
+const STAKING_REWARD_RATE = 0.1; // 10% reward per staking period  
+const STAKING_PERIOD = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds  
+
+// User staking structure  
+class User {  
+    constructor(id) {  
+        this.id = id;  
+        this.stakedAmount = 0;  
+        this.stakingStart = null;  
+        this.reward = 0;  
+    }  
+
+    stake(amount) {  
+        this.stakedAmount += amount;  
+        this.stakingStart = Date.now();  
+    }  
+
+    calculateReward() {  
+        if (!this.stakingStart) return 0;  
+
+        const elapsed = Date.now() - this.stakingStart;  
+        if (elapsed < STAKING_PERIOD) return 0;  
+
+        const periods = Math.floor(elapsed / STAKING_PERIOD);  
+        return this.stakedAmount * STAKING_REWARD_RATE * periods;  
+    }  
+
+    withdraw() {  
+        const reward = this.calculateReward();  
+        this.reward += reward;  
+        const stakedAmount = this.stakedAmount;  
+
+        // Reset state after withdrawal  
+        this.stakedAmount = 0;  
+        this.stakingStart = null;  
+
+        return { stakedAmount, reward: this.reward };  
+    }  
+}  
+
+// Function to stake assets  
+app.post('/stake', (req, res) => {  
+    const { userId, amount } = req.body;  
+
+    if (!users[userId]) {  
+        users[userId] = new User(userId);  
+    }  
+
+    users[userId].stake(amount);  
+    res.json({ message: 'Staking successful!', stakedAmount: users[userId].stakedAmount });  
+});  
+
+// Function to withdraw staked assets and rewards  
+app.post('/withdraw', (req, res) => {  
+    const { userId } = req.body;  
+
+    if (!users[userId]) {  
+        return res.status(404).json({ message: 'User not found' });  
+    }  
+
+    const { stakedAmount, reward } = users[userId].withdraw();  
+    res.json({ message: 'Withdrawal successful!', stakedAmount, reward });  
+});  
+
+// Function to check staking status  
+app.get('/status/:userId', (req, res) => {  
+    const userId = req.params.userId;  
+
+    if (!users[userId]) {  
+        return res.status(404).json({ message: 'User not found' });  
+    }  
+
+    const user = users[userId];  
+    return res.json({  
+        stakedAmount: user.stakedAmount,  
+        reward: user.calculateReward(),  
+        stakingStart: user.stakingStart,  
+        totalReward: user.reward,  
+    });  
+});  
+
+// Start the server  
+app.listen(PORT, () => {  
+    console.log(`Server is running on http://localhost:${PORT}`);  
+});

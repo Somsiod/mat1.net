@@ -1,0 +1,142 @@
+import React, { useState, useEffect } from 'react';  
+import Web3 from 'web3';  
+
+const StepEarnApp = () => {  
+    const [steps, setSteps] = useState(0);  
+    const [address, setAddress] = useState("");  
+    const [reward, setReward] = useState(0);  
+
+    useEffect(() => {  
+        // Use Device Motion API to track steps  
+        const handleMotion = (event) => {  
+            // Implement your step detection logic here  
+
+import React, { useState, useEffect } from 'react';  
+import Web3 from 'web3';  
+
+const StepEarnApp = () => {  
+    const [steps, setSteps] = useState(0);  
+    const [address, setAddress] = useState("");  
+    const [reward, setReward] = useState(0);  
+    const [isTracking, setIsTracking] = useState(false);  
+    
+    // Variables to hold previous accelerometer values  
+    const [prevY, setPrevY] = useState(0);  
+    const [prevTime, setPrevTime] = useState(Date.now());  
+
+    useEffect(() => {  
+        const handleMotion = (event) => {  
+            if (!isTracking) return;  
+
+            const acceleration = event.accelerationIncludingGravity;  
+
+            // Detect steps based on Y-axis acceleration changes  
+            const threshold = 12; // Adjust this threshold for sensitivity  
+            const currentTime = Date.now();  
+
+            // Simple step detection logic  
+            if (acceleration && acceleration.y) {  
+                const deltaY = Math.abs(acceleration.y - prevY);  
+
+                if (deltaY > threshold) {  
+                    // A step is detected  
+                    setSteps((prevSteps) => prevSteps + 1);  
+                    setPrevY(acceleration.y);  
+                    setPrevTime(currentTime);  
+                }  
+            } else {  
+                setPrevY(acceleration.y); // Update prevY if acceleration data is unavailable  
+            }  
+        };  
+
+        window.addEventListener('devicemotion', handleMotion);  
+
+        return () => {  
+            window.removeEventListener('devicemotion', handleMotion);  
+        };  
+    }, [isTracking, prevY]);  
+
+    const connectWallet = async () => {  
+        const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");  
+        const accounts = await web3.eth.requestAccounts();  
+        setAddress(accounts[0]);  
+    };  
+
+    const distributeRewards = async () => {  
+        const response = await fetch('/distribute_rewards', {  
+            method: 'POST',  
+            headers: {  
+                'Content-Type': 'application/json'  
+            },  
+            body: JSON.stringify({ address, steps })  
+        });  
+        const data = await response.json();  
+        setReward(data.reward);  
+    };  
+
+    const startTracking = () => {  
+        setSteps(0); // Reset steps count  
+        setIsTracking(true);  
+    };  
+
+    const stopTracking = () => {  
+        setIsTracking(false);  
+    };  
+
+    return (  
+        <div>  
+            <h1>Step-Earn dApp</h1>  
+            <button onClick={connectWallet}>Connect Wallet</button>  
+            <p>Steps: {steps}</p>  
+            <button onClick={startTracking}>Start Tracking</button>  
+            <button onClick={stopTracking}>Stop Tracking</button>  
+            <button onClick={distributeRewards}>Claim Rewards</button>  
+            <p>Rewards Earned: {reward} Tokens</p>  
+        </div>  
+    );  
+};  
+
+export default StepEarnApp;
+
+            // For simplicity, we increment steps for demonstration  
+            setSteps((prevSteps) => prevSteps + 1);  
+        };  
+
+        window.addEventListener('devicemotion', handleMotion);  
+
+        return () => {  
+            window.removeEventListener('devicemotion', handleMotion);  
+        };  
+    }, []);  
+
+    const connectWallet = async () => {  
+        const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");  
+        const accounts = await web3.eth.requestAccounts();  
+        setAddress(accounts[0]);  
+    };  
+
+    const distributeRewards = async () => {  
+        // Call your smart contract to distribute rewards here  
+        const response = await fetch('/distribute_rewards', {  
+            method: 'POST',  
+            headers: {  
+                'Content-Type': 'application/json'  
+            },  
+            body: JSON.stringify({ address, steps })  
+        });  
+        const data = await response.json();  
+        setReward(data.reward);  
+    };  
+
+    return (  
+        <div>  
+            <h1>Step-Earn dApp</h1>  
+            <button onClick={connectWallet}>Connect Wallet</button>  
+            <p>Steps: {steps}</p>  
+            <button onClick={distributeRewards}>Claim Rewards</button>  
+            <p>Rewards Earned: {reward} Tokens</p>  
+        </div>  
+    );  
+};  
+
+export default StepEarnApp;

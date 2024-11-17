@@ -1,0 +1,94 @@
+import ccxt  
+import numpy as np  
+
+class ArbitrageBot:  
+    def __init__(self, exchanges):  
+        self.exchanges = exchanges  
+
+    def fetch_prices(self):  
+        prices = {}  
+        for exchange in self.exchanges:  
+            prices[exchange] = self.exchanges[exchange].fetch_ticker('BTC/ETH')['last']  
+        return prices  
+
+    def find_arbitrage_opportunity(self):  
+        prices = self.fetch_prices()  
+        max_price = max(prices.values())  
+        min_price = min(prices.values())  
+
+        if max_price > min_price * 1.01:  # Example threshold for profit  
+            print("Arbitrage Opportunity Found!")  
+            return True  
+        return False  
+
+    def execute_trade(self):  
+        # Implement trading logic here  
+        pass  
+
+import requests  
+import time  
+
+# Define your exchange API endpoints and credentials   
+EXCHANGE_A_API = 'https://api.exchange-a.com/ticker'  
+EXCHANGE_B_API = 'https://api.exchange-b.com/ticker'  
+# You might need authentication and specific functions to place trades  
+
+def get_price(exchange_api):  
+    """  
+    Fetch the current price of the asset from the exchange API.  
+    """  
+    response = requests.get(exchange_api)  
+    data = response.json()  
+    return float(data['last_price'])  # Update based on actual data structure  
+
+def check_arbitrage_opportunity(price_a, price_b):  
+    """  
+    Check for arbitrage opportunity.  
+    """  
+    threshold = 0.01  # 1% threshold for arbitrage opportunity   
+    if price_a < price_b:  
+        return 'BUY_A_SELL_B', price_b - price_a  
+    elif price_b < price_a:  
+        return 'BUY_B_SELL_A', price_a - price_b  
+    else:  
+        return None, 0  
+
+def execute_trade(action):  
+    """  
+    Execute the trade based on the action.  
+    You would need to implement the actual trading logic, including error handling  
+    and ensuring you have enough balance.  
+    """  
+    print(f"Executing trade: {action}")  
+
+def main():  
+    while True:  
+        try:  
+            # Fetch prices from both exchanges  
+            price_a = get_price(EXCHANGE_A_API)  
+            price_b = get_price(EXCHANGE_B_API)  
+
+            # Check for arbitrage opportunity  
+            action, profit = check_arbitrage_opportunity(price_a, price_b)  
+            if action:  
+                print(f"Arbitrage Opportunity Detected: {action} with profit {profit:.2f}")  
+                execute_trade(action)  
+            else:  
+                print("No arbitrage opportunity.")  
+
+            time.sleep(10)  # Wait before the next check  
+
+        except Exception as e:  
+            print(f"An error occurred: {e}")  
+            time.sleep(60)  # Wait a minute before retrying to avoid excessive API calls  
+
+if __name__ == '__main__':  
+    main()
+
+# Example usage  
+exchanges = {   
+    'OKX': ccxt.okx() 
+    'Bitget': ccxt.bitget() 
+    'BingX': ccxt.bingx() 
+}  
+bot = ArbitrageBot(exchanges)

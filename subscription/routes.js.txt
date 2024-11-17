@@ -1,0 +1,21 @@
+const express = require('express');  
+const app = express();  
+app.use(express.json());  
+
+app.post('/premium-feature', checkSubscriptionLevel(SubscriptionLevels.OMNIA), (req, res) => {  
+    res.json({ message: 'Accessed premium feature!' });  
+});  
+
+app.post('/ultimate-feature', checkSubscriptionLevel(SubscriptionLevels.ULTIMATE), (req, res) => {  
+    res.json({ message: 'Accessed ultimate feature!' });  
+});  
+
+app.post('/pro-feature', checkSubscriptionLevel(SubscriptionLevels.PRO), (req, res) => {  
+    res.json({ message: 'Accessed pro feature!' });  
+});  
+
+// Start the server  
+const PORT = 3000;  
+app.listen(PORT, () => {  
+    console.log(`Server is running on http://localhost:${PORT}`);  
+});

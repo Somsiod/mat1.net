@@ -1,0 +1,40 @@
+import React, { useState } from 'react';  
+import Web3 from 'web3';  
+
+const JournalApp = () => {  
+    const [entry, setEntry] = useState("");  
+    const [address, setAddress] = useState("");  
+
+    const addEntry = async () => {  
+        const response = await fetch('/add_entry', {  
+            method: 'POST',  
+            headers: {  
+                'Content-Type': 'application/json'  
+            },  
+            body: JSON.stringify({ address, entry })  
+        });  
+        const data = await response.json();  
+        console.log(data);  
+    };  
+
+    const connectWallet = async () => {  
+        const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");  
+        const accounts = await web3.eth.requestAccounts();  
+        setAddress(accounts[0]);  
+    };  
+
+    return (  
+        <div>  
+            <h1>Journal App</h1>  
+            <button onClick={connectWallet}>Connect Wallet</button>  
+            <input  
+                type="text"  
+                value={entry}  
+                onChange={(e) => setEntry(e.target.value)}  
+            />  
+            <button onClick={addEntry}>Add Entry</button>  
+        </div>  
+    );  
+};  
+
+export default JournalApp;

@@ -1,0 +1,14 @@
+const SubscriptionLevels = {  
+    FREE: 'Free',  
+    OMNIA: 'Omnia',  
+    ULTIMATE: 'Ultimate',  
+    PRO: 'Pro',  
+};  
+
+// A mock user data structure  
+const users = {  
+    'user1': { id: 'user1', subscriptionLevel: SubscriptionLevels.FREE },  
+    'user2': { id: 'user2', subscriptionLevel: SubscriptionLevels.OMNIA },  
+    'user3': { id: 'user3', subscriptionLevel: SubscriptionLevels.ULTIMATE },  
+    'user4': { id: 'user4', subscriptionLevel: SubscriptionLevels.PRO },  
+};

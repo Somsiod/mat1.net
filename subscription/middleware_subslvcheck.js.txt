@@ -1,0 +1,24 @@
+function checkSubscriptionLevel(requiredPlan) {  
+    return (req, res, next) => {  
+        const { userId } = req.body; // Assume userId is sent in the request body  
+        const user = users[userId];  
+
+        if (!user) {  
+            return res.status(404).json({ message: 'User not found' });  
+        }  
+
+        const userLevel = user.subscriptionLevel;  
+
+        // Define the subscription levels hierarchy  
+        const levels = Object.values(SubscriptionLevels);  
+        const userPlanIndex = levels.indexOf(userLevel);  
+        const requiredPlanIndex = levels.indexOf(requiredPlan);  
+
+        if (userPlanIndex >= requiredPlanIndex) {  
+            // User has sufficient subscription level  
+            return next();  
+        }  
+
+        return res.status(403).json({ message: 'Insufficient subscription level' });  
+    };  
+}

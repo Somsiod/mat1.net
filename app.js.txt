@@ -1,0 +1,37 @@
+import ccxt  
+import numpy as np  
+
+class ArbitrageBot:  
+    def __init__(self, exchanges):  
+        self.exchanges = exchanges  
+
+    def fetch_prices(self):  
+        prices = {}  
+        for exchange in self.exchanges:  
+            prices[exchange] = self.exchanges[exchange].fetch_ticker('BTC/USDT')['last']  
+        return prices  
+
+    def find_arbitrage_opportunity(self):  
+        prices = self.fetch_prices()  
+        max_price = max(prices.values())  
+        min_price = min(prices.values())  
+
+        if max_price > min_price * 1.01:  # Example threshold for profit  
+            print("Arbitrage Opportunity Found!")  
+            return True  
+        return False  
+
+    def execute_trade(self):  
+        # Implement trading logic here  
+        pass  
+
+# Example usage  
+exchanges = {  
+    'Binance': ccxt.binance(),  
+    'OKX': ccxt.okx() 
+    'Coinbase': ccxt.coinbase() 
+    'Bitget': ccxt.bitget() 
+    'crypto.com': ccxt.crypto.com()  
+    'BingX': ccxt.bingx() 
+}  
+bot = ArbitrageBot(exchanges)
